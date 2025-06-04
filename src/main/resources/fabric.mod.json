@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "weathershower",
+	"version": "1.0.0",
+	"name": "Weather Shower",
+	"description": "Shows the part of time or current weather",
+	"authors": [
+		"Velmir-F"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "MIT",
+	"icon": "assets/weathershower/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"velmir.weathershower.WeatherDisplayMod"
+		]
+	},
+	"mixins": [],
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"minecraft": "1.21.5",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {}
+}
