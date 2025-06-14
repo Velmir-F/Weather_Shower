@@ -59,17 +59,19 @@ public class WeatherDisplayMod implements ClientModInitializer {
         boolean isRaining = world.isRaining();
         boolean isThundering = world.isThundering();
 
+        LOGGER.info("Time of day: {}", timeOfDay);
+
         WeatherType newWeather;
 
         if (isThundering) {
             newWeather = WeatherType.STORM;
         } else if (isRaining) {
             newWeather = WeatherType.RAIN;
-        } else if (timeOfDay >= 0 && timeOfDay < 6000) {
+        } else if (timeOfDay >= 0 && timeOfDay < 3000) {
             newWeather = WeatherType.MORNING;
-        } else if (timeOfDay >= 6000 && timeOfDay < 12000) {
+        } else if (timeOfDay >= 3000 && timeOfDay < 11500) {
             newWeather = WeatherType.DAY;
-        } else if (timeOfDay >= 12000 && timeOfDay < 18000) {
+        } else if (timeOfDay >= 11500 && timeOfDay < 14000) {
             newWeather = WeatherType.EVENING;
         } else {
             newWeather = WeatherType.NIGHT;
@@ -84,7 +86,14 @@ public class WeatherDisplayMod implements ClientModInitializer {
     private boolean canSleep(World world) {
         if (world == null) return false;
         long timeOfDay = world.getTimeOfDay() % 24000;
-        return (timeOfDay >= 12500 && timeOfDay <= 23500) || world.isThundering();
+        boolean canSleepTime = (timeOfDay >= 12510 && timeOfDay <= 23500) || world.isThundering();
+
+        // Додаємо логування для дебагу
+        if (canSleepTime) {
+            LOGGER.info("Can sleep! Time: {}, Thundering: {}", timeOfDay, world.isThundering());
+        }
+
+        return canSleepTime;
     }
 
     private void renderWeatherHud(DrawContext context, RenderTickCounter tickCounter) {
@@ -96,20 +105,17 @@ public class WeatherDisplayMod implements ClientModInitializer {
         int x = screenWidth - iconSize - 10;
         int y = 10;
 
-        try {
-            context.drawTexture(
-                    RenderLayer::getGuiTextured,
-                    currentWeather.getTexture(),
-                    x, y,
-                    0, 0,
-                    iconSize, iconSize,
-                    iconSize, iconSize
-            );
-        } catch (Exception e) {
-            LOGGER.error("Failed to render weather texture: {}", e.getMessage());
-            context.fill(x, y, x + iconSize, y + iconSize, currentWeather.getFallbackColor());
-        }
+        // Відображення іконки погоди
+        context.drawTexture(
+                RenderLayer::getGuiTextured,
+                currentWeather.getTexture(),
+                x, y,
+                0, 0,
+                iconSize, iconSize,
+                iconSize, iconSize
+        );
 
+        // Відображення тексту погоди
         Text weatherText = Text.translatable(currentWeather.getTranslationKey());
         int textWidth = client.textRenderer.getWidth(weatherText);
         int textX = x + (iconSize - textWidth) / 2;
@@ -118,6 +124,7 @@ public class WeatherDisplayMod implements ClientModInitializer {
         context.drawText(client.textRenderer, weatherText, textX + 1, textY + 1, 0x000000, false);
         context.drawText(client.textRenderer, weatherText, textX, textY, 0xFFFFFF, false);
 
+        // Перевірка та відображення іконки сну
         if (canSleep(client.world)) {
             renderSleepIcon(context, client);
         }
@@ -125,32 +132,41 @@ public class WeatherDisplayMod implements ClientModInitializer {
 
     private void renderSleepIcon(DrawContext context, MinecraftClient client) {
         int screenWidth = client.getWindow().getScaledWidth();
-        long timeOfDay = client.world.getTimeOfDay() % 24000;
-        int hours = (int) ((timeOfDay + 6000) / 1000) % 24;
-        int minutes = (int) ((timeOfDay % 1000) * 60 / 1000);
-        Text timeText = Text.literal(String.format("%02d:%02d", hours, minutes));
+        int iconSize = 32;
+        int weatherIconX = screenWidth - iconSize - 10;
+        int weatherIconY = 10;
 
-        int timeTextWidth = client.textRenderer.getWidth(timeText);
-        int timeX = (screenWidth - timeTextWidth) / 2;
-        int timeY = 10;
+        // Отримуємо позицію тексту погоди
+        Text weatherText = Text.translatable(currentWeather.getTranslationKey());
+        int textWidth = client.textRenderer.getWidth(weatherText);
+        int textX = weatherIconX + (iconSize - textWidth) / 2;
+        int textY = weatherIconY + iconSize + 5;
 
-        int sleepIconSize = 12;
-        int sleepX = timeX + timeTextWidth + 5;
-        int sleepY = timeY + 2;
+        // Налаштування іконки сну - під текстом погоди по центру
+        int sleepIconSize = 16;
+        int sleepX = weatherIconX + (iconSize - sleepIconSize) / 2; // Центруємо відносно іконки погоди
+        int sleepY = textY + client.textRenderer.fontHeight + 3; // Під текстом погоди з відступом
+
+        // Додаємо логування для дебагу позиції іконки
+        LOGGER.info("Rendering sleep icon at: x={}, y={}, size={}", sleepX, sleepY, sleepIconSize);
 
         try {
+            // Варіант 1: Якщо текстура sleep_icon.png має розмір 16x16
             context.drawTexture(
                     RenderLayer::getGuiTextured,
                     SLEEP_TEXTURE,
                     sleepX, sleepY,
                     0, 0,
                     sleepIconSize, sleepIconSize,
-                    64, 64
+                    16, 16  // Змінено з 64x64 на 16x16
             );
         } catch (Exception e) {
-            LOGGER.error("Failed to render sleep texture: {}", e.getMessage());
-            Text sleepSymbol = Text.literal("\uD83D\uDCA4");
-            context.drawText(client.textRenderer, sleepSymbol, sleepX, sleepY, 0xFFFFFF, false);
+            // Варіант 2: Якщо основна текстура не працює, використовуємо fallback
+            LOGGER.warn("Failed to render sleep icon, using fallback: {}", e.getMessage());
+
+            // Малюємо простий квадрат як fallback
+            context.fill(sleepX, sleepY, sleepX + sleepIconSize, sleepY + sleepIconSize, 0xFFFFFFFF);
+            context.fill(sleepX + 1, sleepY + 1, sleepX + sleepIconSize - 1, sleepY + sleepIconSize - 1, 0xFF000080);
         }
     }
 
