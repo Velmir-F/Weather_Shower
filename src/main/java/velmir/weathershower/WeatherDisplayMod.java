@@ -71,7 +71,7 @@ public class WeatherDisplayMod implements ClientModInitializer {
             newWeather = WeatherType.MORNING;
         } else if (timeOfDay >= 3000 && timeOfDay < 11500) {
             newWeather = WeatherType.DAY;
-        } else if (timeOfDay >= 11500 && timeOfDay < 14000) {
+        } else if (timeOfDay >= 11500 && timeOfDay < 13000) {
             newWeather = WeatherType.EVENING;
         } else {
             newWeather = WeatherType.NIGHT;
@@ -88,10 +88,6 @@ public class WeatherDisplayMod implements ClientModInitializer {
         long timeOfDay = world.getTimeOfDay() % 24000;
         boolean canSleepTime = (timeOfDay >= 12510 && timeOfDay <= 23500) || world.isThundering();
 
-        // Додаємо логування для дебагу
-        if (canSleepTime) {
-            LOGGER.info("Can sleep! Time: {}, Thundering: {}", timeOfDay, world.isThundering());
-        }
 
         return canSleepTime;
     }
@@ -105,7 +101,7 @@ public class WeatherDisplayMod implements ClientModInitializer {
         int x = screenWidth - iconSize - 10;
         int y = 10;
 
-        // Відображення іконки погоди
+
         context.drawTexture(
                 RenderLayer::getGuiTextured,
                 currentWeather.getTexture(),
@@ -147,8 +143,6 @@ public class WeatherDisplayMod implements ClientModInitializer {
         int sleepX = weatherIconX + (iconSize - sleepIconSize) / 2; // Центруємо відносно іконки погоди
         int sleepY = textY + client.textRenderer.fontHeight + 3; // Під текстом погоди з відступом
 
-        // Додаємо логування для дебагу позиції іконки
-        LOGGER.info("Rendering sleep icon at: x={}, y={}, size={}", sleepX, sleepY, sleepIconSize);
 
         try {
             // Варіант 1: Якщо текстура sleep_icon.png має розмір 16x16
