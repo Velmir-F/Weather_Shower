@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "weathershower",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"name": "Weather Shower",
 	"description": "Shows the part of time or current weather",
 	"authors": [
