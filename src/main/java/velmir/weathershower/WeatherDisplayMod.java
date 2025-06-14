@@ -152,10 +152,9 @@ public class WeatherDisplayMod implements ClientModInitializer {
                     sleepX, sleepY,
                     0, 0,
                     sleepIconSize, sleepIconSize,
-                    16, 16  // Змінено з 64x64 на 16x16
+                    16, 16
             );
         } catch (Exception e) {
-            // Варіант 2: Якщо основна текстура не працює, використовуємо fallback
             LOGGER.warn("Failed to render sleep icon, using fallback: {}", e.getMessage());
 
             // Малюємо простий квадрат як fallback
